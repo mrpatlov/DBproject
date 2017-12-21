@@ -1,0 +1,195 @@
+CREATE TABLE Patient (
+patientID INT PRIMARY KEY,
+name VARCHAR(128) NOT NULL,
+SSN INT,
+age INT NOT NULL,
+gender VARCHAR(128) NOT NULL,
+DOB DATE NOT NULL,
+phoneNumber VARCHAR(128) NOT NULL,
+status VARCHAR(128) NOT NULL,
+address VARCHAR(128) NOT NULL,
+preferredWard VARCHAR(128)
+);
+
+CREATE TABLE Billing (
+billingID INT,
+patientID INT ,
+visitDate DATE NOT NULL,
+fees INT NOT NULL,
+payMethod VARCHAR(128) NOT NULL,
+amount INT NOT NULL,
+cardNum VARCHAR(128) NOT NULL,
+PRIMARY KEY(billingID, patientID),
+CONSTRAINT bil_patient_c
+	FOREIGN KEY (patientID)
+	REFERENCES Patient(patientID)
+	ON DELETE CASCADE
+);
+
+CREATE TABLE MedicalRecord (
+medicalID INT,
+patientID INT,
+start DATE NOT NULL,
+end DATE NOT NULL,
+prescription VARCHAR(128) NOT NULL,
+diagnosis VARCHAR(128) NOT NULL,
+PRIMARY KEY(medicalID, patientID),
+CONSTRAINT med_rec_patient
+FOREIGN KEY (patientID)
+REFERENCES Patient(patientID)
+ON DELETE CASCADE
+);
+
+CREATE TABLE Staff (
+staffID INT PRIMARY KEY,
+phoneNumber VARCHAR(128) NOT NULL,
+address VARCHAR(128) NOT NULL,
+age INT NOT NULL,
+gender VARCHAR(128) NOT NULL,
+jobTitle VARCHAR(128) NOT NULL,
+name VARCHAR(128) NOT NULL,
+department VARCHAR(128) NOT NULL,
+profTitle VARCHAR(128) NOT NULL
+);
+
+CREATE TABLE Ward (
+wardNum INT,
+staffID INT,
+charge INT NOT NULL,
+currentFill INT NOT NULL,
+capacity INT NOT NULL,
+PRIMARY KEY(wardNum, staffID),
+CONSTRAINT ward_staff FOREIGN KEY (staffID) REFERENCES Staff(staffID) ON DELETE NO ACTION
+);
+
+
+CREATE TABLE Nurse (
+staffID INT PRIMARY KEY,
+CONSTRAINT nur_staff FOREIGN KEY (staffID) REFERENCES Staff (staffID)
+ON DELETE CASCADE
+);
+
+CREATE TABLE Operator (
+staffID INT PRIMARY KEY,
+CONSTRAINT op_staff FOREIGN KEY (staffID) REFERENCES Staff(staffID)
+ON DELETE CASCADE
+);
+
+CREATE TABLE Doctor (
+staffID INT PRIMARY KEY,
+CONSTRAINT doc_staff FOREIGN KEY (staffID) REFERENCES Staff(staffID)
+ON DELETE CASCADE
+);
+
+CREATE TABLE InsuranceCompany (
+ID INT PRIMARY KEY,
+name VARCHAR(128) NOT NULL,
+address VARCHAR(128) NOT NULL,
+phoneNumber VARCHAR(128) NOT NULL
+);
+
+CREATE TABLE Treatment (
+type VARCHAR(128),
+patientID INT,
+cost INT NOT NULL,
+description VARCHAR(128) NOT NULL,
+PRIMARY KEY (type),
+CONSTRAINT treat_t FOREIGN KEY (patientID) REFERENCES Patient(patientID)
+ON DELETE CASCADE
+);
+
+CREATE TABLE Test (
+testID INT,
+patientID INT,
+type VARCHAR(128) NOT NULL,
+results VARCHAR(128) NOT NULL,
+PRIMARY KEY (testID, patientID),
+CONSTRAINT test_patient_c
+	FOREIGN KEY (patientID)
+	REFERENCES Patient(patientID)
+	ON DELETE CASCADE
+);
+
+CREATE TABLE consults (
+billingID INT,
+patientID INT,
+medicalID INT,
+PRIMARY KEY(billingID, patientID, medicalID),
+CONSTRAINT con_bill FOREIGN KEY (billingID) REFERENCES Billing(billingID)
+ON DELETE CASCADE,
+CONSTRAINT con_pat FOREIGN KEY (patientID) REFERENCES Patient(patientID)
+ON DELETE CASCADE,
+CONSTRAINT con_med FOREIGN KEY (medicalID) REFERENCES MedicalRecord(medicalID)
+ON DELETE CASCADE
+);
+
+CREATE TABLE appointed (
+staffID INT,
+patientID INT,
+PRIMARY KEY (staffID, patientID),
+CONSTRAINT app_staff FOREIGN KEY (staffID) REFERENCES Staff(staffID) ON DELETE CASCADE,
+CONSTRAINT app_pat FOREIGN KEY (patientID) REFERENCES Patient(patientID) ON DELETE CASCADE
+);
+
+CREATE TABLE stay (
+patientID INT,
+wardNum INT,
+PRIMARY KEY (patientID, wardNum),
+CONSTRAINT st_pat FOREIGN KEY (patientID) REFERENCES Patient(patientID) ON DELETE CASCADE,
+CONSTRAINT st_ward FOREIGN KEY (wardNum) REFERENCES Ward(wardNum) ON DELETE CASCADE
+);
+
+CREATE TABLE checkincheckout (
+patientID INT, 
+staffID INT,
+start DATE NOT NULL, 
+end DATE NOT NULL, 
+bed INT NOT NULL, 
+PRIMARY KEY(patientID, staffID),
+CONSTRAINT chk_pat FOREIGN KEY (patientID) REFERENCES Patient(patientID) ON DELETE CASCADE,
+CONSTRAINT chk_staff FOREIGN KEY (staffID) REFERENCES Staff(staffID) ON DELETE NO ACTION
+);
+
+CREATE TABLE pays (
+ID INT,
+billingID INT,
+PRIMARY KEY (ID, billingID),
+CONSTRAINT pay_ins FOREIGN KEY (ID) REFERENCES InsuranceCompany(ID) ON DELETE CASCADE,
+CONSTRAINT pay_billing FOREIGN KEY (billingID) REFERENCES Billing(billingID) ON DELETE CASCADE
+);
+
+CREATE TABLE assigned (
+type VARCHAR(128),
+staffID INT,
+patientID INT,
+PRIMARY KEY (type, staffID, patientID),
+CONSTRAINT as_type FOREIGN KEY (type) REFERENCES Treatment(type) ON DELETE CASCADE,
+CONSTRAINT as_staff FOREIGN KEY (staffID) REFERENCES Staff(staffID) ON DELETE CASCADE,
+CONSTRAINT as_patient FOREIGN KEY (patientID) REFERENCES Patient(patientID) ON DELETE CASCADE
+);
+
+CREATE TABLE enter (
+staffID INT,
+medicalID INT,
+patientID INT,
+PRIMARY KEY (staffID, medicalID, patientID),
+CONSTRAINT ent_staff FOREIGN KEY (staffID) REFERENCES Staff(staffID) ON DELETE CASCADE,
+CONSTRAINT ent_med FOREIGN KEY (medicalID) REFERENCES MedicalRecord(medicalID) ON DELETE CASCADE,
+CONSTRAINT ent_pat FOREIGN KEY (patientID) REFERENCES Patient(patientID) ON DELETE CASCADE
+);
+
+CREATE TABLE run (
+testID INT,
+staffID INT,
+PRIMARY KEY (testID, staffID),
+CONSTRAINT run_t FOREIGN KEY (testID) REFERENCES Test(testID) ON DELETE CASCADE,
+CONSTRAINT run_s FOREIGN KEY (staffID) REFERENCES Staff(staffID) ON DELETE CASCADE
+);
+
+CREATE TABLE request (
+reqstaffID INT,
+specstaffID INT,
+PRIMARY KEY (reqstaffID, specstaffID),
+CONSTRAINT req_r FOREIGN KEY (reqstaffID) REFERENCES Staff(staffID) ON DELETE CASCADE,
+CONSTRAINT req_s FOREIGN KEY (specstaffID) REFERENCES Staff(staffID) ON DELETE CASCADE
+);
